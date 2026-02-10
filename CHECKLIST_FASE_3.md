@@ -111,6 +111,7 @@ Comandos base:
 ```bash
 cmake -S . -B build
 cmake --build build
+./build/sicp_app
 ```
 
 ---
