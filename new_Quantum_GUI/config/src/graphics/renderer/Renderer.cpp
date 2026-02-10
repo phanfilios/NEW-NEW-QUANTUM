@@ -1,30 +1,26 @@
 #include "Renderer.hpp"
+
 #include <glad/glad.h>
 
-// Definir el quad para dibujar la textura de la escena
 static float quadVertices[] = {
-    // Posiciones   // UV
-    -1.0f,  1.0f, 0.0f, 1.0f,
+    -1.0f, 1.0f, 0.0f, 1.0f,
     -1.0f, -1.0f, 0.0f, 0.0f,
-     1.0f, -1.0f, 1.0f, 0.0f,
+    1.0f, -1.0f, 1.0f, 0.0f,
 
-    -1.0f,  1.0f, 0.0f, 1.0f,
-     1.0f, -1.0f, 1.0f, 0.0f,
-     1.0f,  1.0f, 1.0f, 1.0f
-};
+    -1.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, -1.0f, 1.0f, 0.0f,
+    1.0f, 1.0f, 1.0f, 1.0f};
 
 void Renderer::init(unsigned int width, unsigned int height) {
-    // ... (inicialización de m_mainShader y m_camera) ...
+    m_sceneFBO = std::make_unique<Framebuffer>(width, height);
+    m_camera = std::make_unique<Camera>();
+    m_mainShader = std::make_unique<Shader>("shaders/core/cube_instanced.vert", "shaders/core/cube_instanced.frag");
+    m_postProcessShader = std::make_unique<Shader>("shaders/postprocess/quad.vert", "shaders/postprocess/bloom.frag");
 
-    m_sceneFBO = new Framebuffer(width, height);
-    // Cargar el shader de post-procesado (ej: bloom.frag)
-    m_postProcessShader = new Shader("shaders/postprocess/quad.vert", "shaders/postprocess/bloom.frag"); 
     m_postProcessShader->use();
-    m_postProcessShader->setInt("u_SceneTexture", 0); // La textura de la escena va a la unidad 0
-    m_postProcessShader->setInt("u_BlurredTexture", 1); // Si tuvieras un shader de blur, iría aquí
+    m_postProcessShader->setInt("u_SceneTexture", 0);
 
-    // Configurar VAO/VBO para el quad de post-procesado
-    unsigned int quadVBO;
+    unsigned int quadVBO = 0;
     glGenVertexArrays(1, &m_quadVAO);
     glGenBuffers(1, &quadVBO);
     glBindVertexArray(m_quadVAO);
@@ -37,23 +33,56 @@ void Renderer::init(unsigned int width, unsigned int height) {
     glBindVertexArray(0);
 }
 
+void Renderer::clear() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Renderer::submit(const QuantumCubeField& field, const glm::vec4& color) {
+    (void)field;
+    if (!m_mainShader) {
+        return;
+    }
+
+    m_mainShader->use();
+    m_mainShader->setVec4("u_Color", color);
+}
+
 void Renderer::beginSceneRender() {
+    if (!m_sceneFBO) {
+        return;
+    }
+
     m_sceneFBO->bind();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpiar el FBO
+    clear();
 }
 
 void Renderer::endSceneRender() {
-    m_sceneFBO->unbind(); // Volver al framebuffer por defecto
+    if (!m_sceneFBO) {
+        return;
+    }
+
+    m_sceneFBO->unbind();
 }
 
 void Renderer::renderPostProcess(float bloomIntensity) {
-    // Ahora dibujamos la textura del FBO en la pantalla
+    if (!m_postProcessShader || !m_sceneFBO) {
+        return;
+    }
+
     m_postProcessShader->use();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_sceneFBO->getTextureID());
     m_postProcessShader->setFloat("u_BloomIntensity", bloomIntensity);
 
     glBindVertexArray(m_quadVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6); // Dibujar el quad
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
+}
+
+void Renderer::shutdown() {
+    m_sceneFBO.reset();
+    m_camera.reset();
+    m_postProcessShader.reset();
+    m_mainShader.reset();
+    m_quadVAO = 0;
 }
