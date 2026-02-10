@@ -1,24 +1,22 @@
 #pragma once
-#include <glm/glm.hpp>
+
+#include "science/neuro/NeuroInterface.hpp"
+
+struct QuantumVector {
+    float x = 1.0f;
+    float y = 0.0f;
+    float z = 0.0f;
+};
 
 class QuantumState {
 public:
-    void evolve(float dt) {
-        // Simulación de precesión de Larmor simplificada
-        m_phase += m_omega * dt;
-        m_bloch.x = std::sin(m_phase);
-        m_bloch.y = std::cos(m_phase);
-        m_bloch.z = std::cos(m_phase * 0.5f);
-    }
+    void evolve(const BrainWaves& waves, float dt);
 
-    float getCoherence() const { 
-        return glm::length(m_bloch); 
-    }
-    
-    glm::vec3 getVector() const { return m_bloch; }
+    float getCoherence() const;
+    QuantumVector getVector() const;
 
 private:
-    glm::vec3 m_bloch{1.0f, 0.0f, 0.0f};
+    QuantumVector m_bloch{};
     float m_phase = 0.0f;
-    float m_omega = 1.2f; // Velocidad angular
+    float m_omega = 1.2f;
 };
