@@ -40,10 +40,10 @@ Evidencia mínima:
 
 Objetivo: mantener separación estricta de responsabilidades.
 
-- [ ] `science/*` no incluye OpenGL (`glad`, `GLFW`, shaders, renderer API).
-- [ ] `graphics/*` no depende de semántica cuántica/neuro.
-- [ ] `interface/VisualMapper` es el único traductor de estado a parámetros visuales.
-- [ ] `Kernel` permanece como coordinador (no calcula ciencia ni renderiza).
+- [x] `science/*` no incluye OpenGL (`glad`, `GLFW`, shaders, renderer API).
+- [x] `graphics/*` no depende de semántica cuántica/neuro.
+- [x] `interface/VisualMapper` es el único traductor de estado a parámetros visuales.
+- [x] `Kernel` permanece como coordinador (no calcula ciencia ni renderiza).
 
 Comandos sugeridos:
 
@@ -51,6 +51,18 @@ Comandos sugeridos:
 rg "#include <glad|#include <GLFW|Renderer|Shader" new_Quantum_GUI/config/src/science
 rg "QuantumState|BrainWaves|Neuro" new_Quantum_GUI/config/src/graphics
 ```
+
+Evidencia ejecutada (Fase 2):
+
+```bash
+rg "#include <glad|#include <GLFW|Renderer|Shader" new_Quantum_GUI/config/src/science -n
+rg "QuantumState|BrainWaves|Neuro" new_Quantum_GUI/config/src/graphics -n
+```
+
+Resultado:
+- Sin coincidencias en `science/*` para dependencias de OpenGL/Renderer.
+- Sin coincidencias en `graphics/*` para semántica de neuro/ciencia.
+
 
 ---
 
