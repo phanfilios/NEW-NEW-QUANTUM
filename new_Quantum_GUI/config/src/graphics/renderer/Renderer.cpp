@@ -2,6 +2,26 @@
 
 #include <glad/glad.h>
 
+#include <filesystem>
+#include <string>
+
+
+namespace {
+std::string resolveShaderPath(const char* relativePath) {
+    const std::filesystem::path directPath(relativePath);
+    if (std::filesystem::exists(directPath)) {
+        return directPath.string();
+    }
+
+    const std::filesystem::path repoPath = std::filesystem::path("new_Quantum_GUI/config") / relativePath;
+    if (std::filesystem::exists(repoPath)) {
+        return repoPath.string();
+    }
+
+    return directPath.string();
+}
+}
+
 static float quadVertices[] = {
     -1.0f, 1.0f, 0.0f, 1.0f,
     -1.0f, -1.0f, 0.0f, 0.0f,
@@ -14,8 +34,13 @@ static float quadVertices[] = {
 void Renderer::init(unsigned int width, unsigned int height) {
     m_sceneFBO = std::make_unique<Framebuffer>(width, height);
     m_camera = std::make_unique<Camera>();
-    m_mainShader = std::make_unique<Shader>("shaders/core/cube_instanced.vert", "shaders/core/cube_instanced.frag");
-    m_postProcessShader = std::make_unique<Shader>("shaders/postprocess/quad.vert", "shaders/postprocess/bloom.frag");
+    const std::string cubeVertexPath = resolveShaderPath("shaders/core/cube_instanced.vert");
+    const std::string cubeFragmentPath = resolveShaderPath("shaders/core/cube_instanced.frag");
+    const std::string quadVertexPath = resolveShaderPath("shaders/postprocess/quad.vert");
+    const std::string bloomFragmentPath = resolveShaderPath("shaders/postprocess/bloom.frag");
+
+    m_mainShader = std::make_unique<Shader>(cubeVertexPath.c_str(), cubeFragmentPath.c_str());
+    m_postProcessShader = std::make_unique<Shader>(quadVertexPath.c_str(), bloomFragmentPath.c_str());
 
     glEnable(GL_DEPTH_TEST);
 
