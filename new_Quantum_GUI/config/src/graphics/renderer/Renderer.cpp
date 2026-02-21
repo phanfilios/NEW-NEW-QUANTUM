@@ -44,8 +44,10 @@ void Renderer::init(unsigned int width, unsigned int height) {
 
     glEnable(GL_DEPTH_TEST);
 
-    m_postProcessShader->use();
-    m_postProcessShader->setInt("u_SceneTexture", 0);
+    if (m_postProcessShader && m_postProcessShader->isValid()) {
+        m_postProcessShader->use();
+        m_postProcessShader->setInt("u_SceneTexture", 0);
+    }
 
     glGenVertexArrays(1, &m_quadVAO);
     glGenBuffers(1, &m_quadVBO);
@@ -64,7 +66,7 @@ void Renderer::clear() {
 }
 
 void Renderer::submit(const QuantumCubeField& field, const glm::vec4& color) {
-    if (!m_mainShader || !m_camera) {
+    if (!m_mainShader || !m_mainShader->isValid() || !m_camera) {
         return;
     }
 
@@ -75,7 +77,7 @@ void Renderer::submit(const QuantumCubeField& field, const glm::vec4& color) {
 }
 
 void Renderer::beginSceneRender() {
-    if (!m_sceneFBO) {
+    if (!m_sceneFBO || !m_sceneFBO->isComplete()) {
         return;
     }
 
@@ -84,7 +86,7 @@ void Renderer::beginSceneRender() {
 }
 
 void Renderer::endSceneRender() {
-    if (!m_sceneFBO) {
+    if (!m_sceneFBO || !m_sceneFBO->isComplete()) {
         return;
     }
 
@@ -92,7 +94,7 @@ void Renderer::endSceneRender() {
 }
 
 void Renderer::renderPostProcess(float bloomIntensity) {
-    if (!m_postProcessShader || !m_sceneFBO) {
+    if (!m_postProcessShader || !m_postProcessShader->isValid() || !m_sceneFBO || !m_sceneFBO->isComplete()) {
         return;
     }
 

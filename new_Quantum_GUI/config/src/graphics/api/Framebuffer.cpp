@@ -19,7 +19,8 @@ Framebuffer::Framebuffer(unsigned int width, unsigned int height)
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<int>(m_width), static_cast<int>(m_height));
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil);
 
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    m_complete = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+    if (!m_complete) {
         std::cerr << "[Framebuffer] FBO incompleto durante inicializacion." << '\n';
     }
 
