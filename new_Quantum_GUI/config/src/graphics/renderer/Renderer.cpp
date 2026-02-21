@@ -17,14 +17,15 @@ void Renderer::init(unsigned int width, unsigned int height) {
     m_mainShader = std::make_unique<Shader>("shaders/core/cube_instanced.vert", "shaders/core/cube_instanced.frag");
     m_postProcessShader = std::make_unique<Shader>("shaders/postprocess/quad.vert", "shaders/postprocess/bloom.frag");
 
+    glEnable(GL_DEPTH_TEST);
+
     m_postProcessShader->use();
     m_postProcessShader->setInt("u_SceneTexture", 0);
 
-    unsigned int quadVBO = 0;
     glGenVertexArrays(1, &m_quadVAO);
-    glGenBuffers(1, &quadVBO);
+    glGenBuffers(1, &m_quadVBO);
     glBindVertexArray(m_quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
@@ -38,13 +39,14 @@ void Renderer::clear() {
 }
 
 void Renderer::submit(const QuantumCubeField& field, const glm::vec4& color) {
-    (void)field;
-    if (!m_mainShader) {
+    if (!m_mainShader || !m_camera) {
         return;
     }
 
     m_mainShader->use();
+    m_mainShader->setMat4("u_ViewProjection", m_camera->viewProjection());
     m_mainShader->setVec4("u_Color", color);
+    field.draw();
 }
 
 void Renderer::beginSceneRender() {
@@ -84,5 +86,13 @@ void Renderer::shutdown() {
     m_camera.reset();
     m_postProcessShader.reset();
     m_mainShader.reset();
-    m_quadVAO = 0;
+
+    if (m_quadVBO != 0) {
+        glDeleteBuffers(1, &m_quadVBO);
+        m_quadVBO = 0;
+    }
+    if (m_quadVAO != 0) {
+        glDeleteVertexArrays(1, &m_quadVAO);
+        m_quadVAO = 0;
+    }
 }
