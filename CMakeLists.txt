@@ -24,3 +24,13 @@ target_include_directories(sicp_app PRIVATE
 )
 
 message(STATUS "Building sicp_app with local GL/GLM stubs for Paso 1 executable smoke tests.")
+
+
+add_executable(sicp_phase3_checks
+  tools/validate_visual_mapper.cpp
+  new_Quantum_GUI/config/src/science/quantum/QuantumState.cpp
+)
+
+target_include_directories(sicp_phase3_checks PRIVATE
+  new_Quantum_GUI/config/src
+)

@@ -14,3 +14,12 @@ cmake --build build -j
 
 El ejecutable de este paso usa *stubs locales* para OpenGL (`glad`) y matemáticas tipo `glm`.
 Esto permite validar integración de módulos y ciclo de vida del motor sin depender de drivers o librerías externas en esta etapa.
+
+
+## Paso 2: validación rápida de VisualMapper (Parte 3)
+
+```bash
+cmake -S . -B build
+cmake --build build -j
+./build/sicp_phase3_checks
+```

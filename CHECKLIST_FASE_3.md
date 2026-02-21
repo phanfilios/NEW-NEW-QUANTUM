@@ -73,27 +73,40 @@ Objetivo: comprobar consistencia del mapeo `QuantumState -> RenderUpdate`.
 Escenarios mínimos:
 
 ### Escenario A — Señal baja / estable
-- [ ] `scale` baja-media.
-- [ ] `rotationSpeed` contenida.
-- [ ] `bloomIntensity` baja.
+- [x] `scale` baja-media.
+- [x] `rotationSpeed` contenida.
+- [x] `bloomIntensity` baja.
 
 ### Escenario B — Señal oscilante / media
-- [ ] variación perceptible en `rotationSpeed`.
-- [ ] variación suave en color.
-- [ ] bloom intermedio.
+- [x] variación perceptible en `rotationSpeed`.
+- [x] variación suave en color.
+- [x] bloom intermedio.
 
 ### Escenario C — Señal alta
-- [ ] aumento claro de bloom.
-- [ ] mayor dinamismo visual.
-- [ ] comportamiento estable (sin saltos extremos no esperados).
+- [x] aumento claro de bloom.
+- [x] mayor dinamismo visual.
+- [x] comportamiento estable (sin saltos extremos no esperados).
 
 Registro sugerido (tabla):
 
 | Escenario | Entrada (señal/coherencia) | scale | rotationSpeed | color | bloom |
 |---|---:|---:|---:|---|---:|
-| A |  |  |  |  |  |
-| B |  |  |  |  |  |
-| C |  |  |  |  |  |
+| A | alpha=0.10, beta=0.10, gamma=0.10 | 0.7925 | 1.4000 | base/fría | 0.0146 |
+| B | alpha=0.60, beta=0.60, gamma=0.60 | 0.8800 | 1.9000 | transición | 0.3936 |
+| C | alpha=1.00, beta=1.00, gamma=1.00 | 0.9500 | 2.3000 | más intensa | 0.8017 |
+
+
+Evidencia ejecutada (Fase 3 / Parte 3):
+
+```bash
+cmake -S . -B build
+cmake --build build -j
+./build/sicp_phase3_checks
+```
+
+Resultado:
+- Se validó incremento monótono en `scale`, `rotationSpeed` y `bloom` entre escenarios A→B→C.
+- El ejecutable reportó `Validation passed.`
 
 ---
 
