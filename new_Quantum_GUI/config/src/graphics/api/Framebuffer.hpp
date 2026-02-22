@@ -1,4 +1,5 @@
 #pragma once
+
 #include <glad/glad.h>
 
 class Framebuffer {
@@ -8,11 +9,14 @@ public:
 
     void bind();
     void unbind();
+    bool isComplete() const { return m_complete; }
     unsigned int getTextureID() const { return m_textureColorbuffer; }
 
 private:
     unsigned int m_fbo;
     unsigned int m_textureColorbuffer;
     unsigned int m_rboDepthStencil;
-    unsigned int m_width, m_height;
+    unsigned int m_width;
+    unsigned int m_height;
+    bool m_complete = false;
 };

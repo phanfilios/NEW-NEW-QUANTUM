@@ -25,4 +25,5 @@ private:
     std::unique_ptr<Framebuffer> m_sceneFBO;
 
     unsigned int m_quadVAO = 0;
+    unsigned int m_quadVBO = 0;
 };

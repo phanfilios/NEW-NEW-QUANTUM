@@ -13,6 +13,8 @@ class QuantumCubeField {
 public:
     void init(int count);
     void update(float globalScale, float globalSpeed, float dt);
+    void draw() const;
+    void shutdown();
 
     const std::vector<CubeInstance>& instances() const { return m_instanceData; }
 
@@ -22,4 +24,6 @@ private:
 
     int m_count = 0;
     std::vector<CubeInstance> m_instanceData;
+    unsigned int m_vao = 0;
+    unsigned int m_vbo = 0;
 };

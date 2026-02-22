@@ -14,10 +14,12 @@ public:
     void swapBuffers();
     void pollEvents();
     void shutdown();
+    bool hasGraphicsContext() const;
 
 private:
     bool m_initialized = false;
-    unsigned int m_frameCount = 0;
+    bool m_hasGraphicsContext = false;
+    struct GLFWwindow* m_windowHandle = nullptr;
 };
 
 class Engine {
