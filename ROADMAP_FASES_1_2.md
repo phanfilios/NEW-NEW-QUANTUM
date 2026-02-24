@@ -88,3 +88,28 @@ Una vez verificada compilación del entorno real (GLFW/GLAD/GLM + CMake), avanza
 - pruebas de integración del loop,
 - checklist de ownership de recursos,
 - validación visual reproducible por escenarios de señal.
+
+---
+
+## Pre-Fase 3 — Gate de continuidad (estado real)
+
+Sí podemos continuar con la siguiente fase, pero hay **impedimentos concretos** que conviene cerrar primero para no perder tiempo en depuración:
+
+1. **Dependencias nativas del entorno**
+   - Falta confirmar instalación y enlace de `GLFW`, `GLAD` y `GLM` en el entorno objetivo.
+   - Sin ese gate, no hay validación de build/runtime real del loop gráfico.
+
+2. **Validación visual reproducible**
+   - Definir al menos 2 escenarios de señal (`BrainWaves`) esperados y su salida visual objetivo.
+   - Hoy ya existe pipeline de render, pero falta criterio de aceptación visual formal.
+
+3. **Cámara y geometría de cubos**
+   - La cámara sigue mínima (matriz identidad).
+   - El campo actual dibuja puntos GPU (`GL_POINTS`); para Fase 3 visual completa faltaría geometría de cubo/instancing final.
+
+### Mini-plan recomendado (Fase 3 inicial)
+- **Paso A:** cerrar toolchain (CMake + libs + include/link en CI/local).
+- **Paso B:** agregar smoke test de inicialización (`Engine::initialize` + `shutdown`).
+- **Paso C:** migrar `QuantumCubeField` de puntos a malla de cubo instanciada.
+- **Paso D:** cámara real (view/projection configurable) y presets de escena.
+- **Paso E:** checklist de regresión visual (capturas comparables por escenario).

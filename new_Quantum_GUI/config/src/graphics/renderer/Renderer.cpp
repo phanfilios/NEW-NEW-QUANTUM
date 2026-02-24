@@ -2,6 +2,26 @@
 
 #include <glad/glad.h>
 
+#include <filesystem>
+#include <string>
+
+
+namespace {
+std::string resolveShaderPath(const char* relativePath) {
+    const std::filesystem::path directPath(relativePath);
+    if (std::filesystem::exists(directPath)) {
+        return directPath.string();
+    }
+
+    const std::filesystem::path repoPath = std::filesystem::path("new_Quantum_GUI/config") / relativePath;
+    if (std::filesystem::exists(repoPath)) {
+        return repoPath.string();
+    }
+
+    return directPath.string();
+}
+}
+
 static float quadVertices[] = {
     -1.0f, 1.0f, 0.0f, 1.0f,
     -1.0f, -1.0f, 0.0f, 0.0f,
@@ -14,17 +34,25 @@ static float quadVertices[] = {
 void Renderer::init(unsigned int width, unsigned int height) {
     m_sceneFBO = std::make_unique<Framebuffer>(width, height);
     m_camera = std::make_unique<Camera>();
-    m_mainShader = std::make_unique<Shader>("shaders/core/cube_instanced.vert", "shaders/core/cube_instanced.frag");
-    m_postProcessShader = std::make_unique<Shader>("shaders/postprocess/quad.vert", "shaders/postprocess/bloom.frag");
+    const std::string cubeVertexPath = resolveShaderPath("shaders/core/cube_instanced.vert");
+    const std::string cubeFragmentPath = resolveShaderPath("shaders/core/cube_instanced.frag");
+    const std::string quadVertexPath = resolveShaderPath("shaders/postprocess/quad.vert");
+    const std::string bloomFragmentPath = resolveShaderPath("shaders/postprocess/bloom.frag");
 
-    m_postProcessShader->use();
-    m_postProcessShader->setInt("u_SceneTexture", 0);
+    m_mainShader = std::make_unique<Shader>(cubeVertexPath.c_str(), cubeFragmentPath.c_str());
+    m_postProcessShader = std::make_unique<Shader>(quadVertexPath.c_str(), bloomFragmentPath.c_str());
 
-    unsigned int quadVBO = 0;
+    glEnable(GL_DEPTH_TEST);
+
+    if (m_postProcessShader && m_postProcessShader->isValid()) {
+        m_postProcessShader->use();
+        m_postProcessShader->setInt("u_SceneTexture", 0);
+    }
+
     glGenVertexArrays(1, &m_quadVAO);
-    glGenBuffers(1, &quadVBO);
+    glGenBuffers(1, &m_quadVBO);
     glBindVertexArray(m_quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
@@ -38,17 +66,18 @@ void Renderer::clear() {
 }
 
 void Renderer::submit(const QuantumCubeField& field, const glm::vec4& color) {
-    (void)field;
-    if (!m_mainShader) {
+    if (!m_mainShader || !m_mainShader->isValid() || !m_camera) {
         return;
     }
 
     m_mainShader->use();
+    m_mainShader->setMat4("u_ViewProjection", m_camera->viewProjection());
     m_mainShader->setVec4("u_Color", color);
+    field.draw();
 }
 
 void Renderer::beginSceneRender() {
-    if (!m_sceneFBO) {
+    if (!m_sceneFBO || !m_sceneFBO->isComplete()) {
         return;
     }
 
@@ -57,7 +86,7 @@ void Renderer::beginSceneRender() {
 }
 
 void Renderer::endSceneRender() {
-    if (!m_sceneFBO) {
+    if (!m_sceneFBO || !m_sceneFBO->isComplete()) {
         return;
     }
 
@@ -65,7 +94,7 @@ void Renderer::endSceneRender() {
 }
 
 void Renderer::renderPostProcess(float bloomIntensity) {
-    if (!m_postProcessShader || !m_sceneFBO) {
+    if (!m_postProcessShader || !m_postProcessShader->isValid() || !m_sceneFBO || !m_sceneFBO->isComplete()) {
         return;
     }
 
@@ -84,5 +113,13 @@ void Renderer::shutdown() {
     m_camera.reset();
     m_postProcessShader.reset();
     m_mainShader.reset();
-    m_quadVAO = 0;
+
+    if (m_quadVBO != 0) {
+        glDeleteBuffers(1, &m_quadVBO);
+        m_quadVBO = 0;
+    }
+    if (m_quadVAO != 0) {
+        glDeleteVertexArrays(1, &m_quadVAO);
+        m_quadVAO = 0;
+    }
 }
